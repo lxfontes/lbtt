@@ -1,0 +1,10 @@
+required:
+v8 javascript engine ( http://code.google.com/p/v8/ ) ** shipped
+libev IO layer ( http://software.schmorp.de/pkg/libev.html ) ** shipped
+fastcgi libraries ( http://www.fastcgi.com/ )
+boost libraries ( http://www.boost.org/ )
+mysql libraries ( http://www.mysql.com )
+
+compiling is still kinda a pain, just make sure you put all required libs in the required directories and you'll be fine.
+scons mode=release library=static snapshot=on
+
