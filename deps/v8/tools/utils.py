@@ -66,7 +66,7 @@ def GuessArchitecture():
   elif (not id) or (not re.match('(x|i[3-6])86', id) is None):
     return 'ia32'
   else:
-    return None
+    return 'x64'
 
 
 def GuessWordsize():

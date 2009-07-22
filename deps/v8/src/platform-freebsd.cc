@@ -550,16 +550,16 @@ static void ProfilerSignalHandler(int signal, siginfo_t* info, void* context) {
   // If profiling, we extract the current pc and sp.
   if (active_sampler_->IsProfiling()) {
     // Extracting the sample from the context is extremely machine dependent.
-    ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(context);
-    mcontext_t& mcontext = ucontext->uc_mcontext;
+    //ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(context);
+    //mcontext_t& mcontext = ucontext->uc_mcontext;
 #if defined (__arm__) || defined(__thumb__)
     sample.pc = mcontext.mc_r15;
     sample.sp = mcontext.mc_r13;
     sample.fp = mcontext.mc_r11;
 #else
-    sample.pc = mcontext.mc_eip;
-    sample.sp = mcontext.mc_esp;
-    sample.fp = mcontext.mc_ebp;
+    //sample.pc = mcontext.mc_eip;
+   // sample.sp = mcontext.mc_esp;
+   // sample.fp = mcontext.mc_ebp;
 #endif
     active_sampler_->SampleStack(&sample);
   }
