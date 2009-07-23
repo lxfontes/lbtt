@@ -1,7 +1,7 @@
 #ifndef __TRACKER_H__
 #define __TRACKER_H__
 #include <map>
-#include <mysql/mysql.h>
+#include <mysql.h>
 #include "request.h"
 #include "scoped_lock.hpp"
 #include <v8.h>
