@@ -1,15 +1,17 @@
 #ifndef __SFCGI_H__
 #define __SFCGI_H__
+#include <iostream>
+#include <sstream>
 #include "fcgio.h"
 #include "tracker.h"
-#include <boost/thread.hpp>
+#include "thread.hpp"
 class sfcgi
 {
 public:
-        sfcgi (tracker &t,int port){ tracker_ = &t; string p(":"); p += boost::lexical_cast<std::string>(port);
+        sfcgi (tracker &t,int port){ tracker_ = &t; std::stringstream p; p << ":"; p << port;
         FCGX_Init();
-        usock = FCGX_OpenSocket(p.c_str(),10); 
-        boost::thread thr(boost::bind(&sfcgi::run,this));
+        usock = FCGX_OpenSocket(p.str().c_str(),10); 
+        thread<sfcgi> thr(this);
     }
     	static int decode_q(const char *uri,char *ret){
     		        char c;

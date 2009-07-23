@@ -7,6 +7,7 @@
 
 
 #include "acceptor.h"
+#include "thread.hpp"
 
 using namespace std;
 
@@ -82,14 +83,15 @@ acceptor::acceptor(const char *pp,int p,int t,processor &h):m_processor(h) {
         iow.set(loop);
         iow.set<acceptor,&acceptor::newcon>(this);
         athread = 0;
-        
+        thread<worker> *thr;
         nthread = t>50?50:t;
         port = p;
         
         
         for (int i = 0; i < nthread; ++i){
                 worker *w = new worker(m_processor);
-                workers[i] = w;
-        		threads.create_thread(boost::bind(&worker::spin,w));
+                workers.push_back(w);
+                thr = new thread<worker>(w);
+        		threads.push_back(thr);
         }
 }

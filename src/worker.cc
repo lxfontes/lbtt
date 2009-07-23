@@ -5,13 +5,13 @@
 
 using namespace std;
 
-void worker::spin(){
+void worker::run(){
 	asyncw.start();
 	loop.loop();
 }
 
 void worker::add_session(int cfd){
-	boost::mutex::scoped_lock lock( io_mutex );
+	scoped_lock lock( io_mutex );	
 	que.push(cfd);
 	asyncw.send();
 }
@@ -22,7 +22,7 @@ idlew.stop();
 }
 
 void worker::pqueue(ev::async &w,int revents){
-boost::mutex::scoped_lock lock( io_mutex );
+scoped_lock lock( io_mutex );	
 while(que.size() > 0){
         int s = que.front();
         que.pop();    

@@ -1,11 +1,12 @@
 #include "tracker.h"
 #include "request.h"
-#include <boost/bind.hpp>
-
+#include "thread.hpp"
+#include <sys/time.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
+#include <sstream>
 
 
 using namespace std;
@@ -114,35 +115,35 @@ tt = snprintf(outb,outs,"d8:completei%lde10:incompletei%lde8:intervali%de12:min 
 		tt++;	
 		}else{
 			//not compact
-			string walker;
+			stringstream walker;
 			char *ip;
-			walker +='l';
+			walker << 'l';
 			for(unsigned int i=0;i<req.numwant && pees != tor->peers.end();i++,pees++){	
 				peer *pi = pees->second;
-				walker += "d2:ip";
+				walker << "d2:ip";
 				ip = inet_ntoa(*(struct in_addr *)&pi->ip);
-				walker += boost::lexical_cast<std::string>(strlen(ip));
-				walker += ':';
-				walker += ip;
-				walker += "4:porti";
-				walker += boost::lexical_cast<std::string>(pi->port);
-				walker += "ee";
+				walker << strlen(ip);
+				walker << ':';
+				walker << ip;
+				walker << "4:porti";
+				walker << pi->port;
+				walker << "ee";
 			}
-			walker +="ee";			
+			walker << "ee";			
 			char *p = outb + tt;
-			memcpy(p,walker.c_str(),walker.size());
-			tt += walker.size();
+			memcpy(p,walker.str().c_str(),walker.str().size());
+			tt += walker.str().size();
 		}
 		return tt;
 		
 }
 
 
-void tracker::housekeeping(){ 
+void tracker::run(){ 
 	//time in milisecs
 	while(1){
 		{
-			boost::mutex::scoped_lock lock( io_mutex );	
+			scoped_lock lock( io_mutex );	
 				HandleScope handle_scope;
 				Context::Scope context_scope(context);
 
@@ -176,7 +177,7 @@ void tracker::housekeeping(){
 }
 
 int tracker::scrape(request &req,char *outb,size_t outs){
-	boost::mutex::scoped_lock lock( io_mutex );
+	scoped_lock lock( io_mutex );
 	torrent *tor;
 	map<const char *,torrent *>::iterator iter = torrents.find(req.torrent);
 	if(iter == torrents.end()) return dumperr("not found",outb,outs);
@@ -194,7 +195,7 @@ int tracker::scrape(request &req,char *outb,size_t outs){
 //return number of bytes to send to client
 //don't run strlen(outb) !
 int tracker::processRequest(request &req,char *outb,size_t outs){
-	boost::mutex::scoped_lock lock( io_mutex );
+	scoped_lock lock( io_mutex );
 	HandleScope handle_scope;
 	Context::Scope context_scope(context);
 	struct timeval tv;
@@ -379,6 +380,7 @@ Handle<ObjectTemplate> tracker::makeFuncs() {
 
 tracker::tracker(){
 	HandleScope handle_scope;
+	pthread_mutex_init(&io_mutex,NULL);
 
 	Handle<ObjectTemplate> funcs = makeFuncs();
 	global =  Persistent<ObjectTemplate>::New(funcs);	
@@ -427,11 +429,11 @@ tracker::tracker(){
     
     seeders = hosts = download = 0;
     //housekeeping thread
-    boost::thread thr(boost::bind(&tracker::housekeeping,this));
+    thread<tracker> thr(this);
 }
 
 void tracker::status(ostream &fo){
-	boost::mutex::scoped_lock lock( io_mutex );
+	scoped_lock lock( io_mutex );
 	
 	fo << "{ " ;
 	fo << "\"torrents\": " << torrents.size() << "," ;
@@ -441,7 +443,7 @@ void tracker::status(ostream &fo){
 }
 
 void tracker::info(ostream &fo,char *toc){
-	boost::mutex::scoped_lock lock( io_mutex );
+	scoped_lock lock( io_mutex );
 	torrent *tor;
 	map<const char *,torrent *>::iterator iter = torrents.find(toc);
 	if(iter == torrents.end()){ fo << "{\"error\": \"not found\"}" ; return ; }

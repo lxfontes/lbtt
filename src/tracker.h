@@ -1,11 +1,12 @@
 #ifndef __TRACKER_H__
 #define __TRACKER_H__
 #include <map>
-#include <boost/thread.hpp>
 #include <mysql/mysql.h>
 #include "request.h"
+#include "scoped_lock.hpp"
 #include <v8.h>
-
+#include <iostream>
+#include <ostream>
 using namespace std;
 
 using namespace v8;
@@ -49,14 +50,14 @@ public:
 	int processRequest(request &,char *,size_t);
 	int scrape(request &,char *,size_t);
 	int dumperr(const char *,char *,size_t);
-	void housekeeping();
+	void run();
 	void status(ostream &);
 	void info(ostream &,char *);
 
 protected:
 	Handle<ObjectTemplate> makeFuncs();
-	boost::mutex io_mutex ;
-	
+	pthread_mutex_t io_mutex ;
+
 	//v8 specific
 	Persistent<Context> context;
 	Persistent<ObjectTemplate> global;
@@ -69,7 +70,7 @@ protected:
 		void removePeer(torrent *,peer *);
 	map<const char *,torrent *, hashCmp > torrents;
 	int peerList(request &,torrent *,char *,size_t);
-	boost::mutex tracker_mutex;
+	
 	unsigned long hosts;
 	unsigned long seeders;
 	unsigned long download;
