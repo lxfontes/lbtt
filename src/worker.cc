@@ -72,7 +72,7 @@ void worker::process(ev::io &w,int revents){
 }
 
 worker::worker(processor &h) : m_processor(h) {
-	
+	pthread_mutex_init(&io_mutex,NULL);
 	asyncw.set(loop);
 	idlew.set(loop);
 	idlew.set<worker,&worker::idle>(this);
