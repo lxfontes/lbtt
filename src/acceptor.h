@@ -23,6 +23,5 @@ protected:
 	const char *ip;
 	int nthread; //max threads
 	int athread; //actual thread
-	processor m_processor;
 };
 #endif

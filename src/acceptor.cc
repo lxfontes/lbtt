@@ -1,11 +1,8 @@
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
-
-
 #include "acceptor.h"
 #include "thread.hpp"
 
@@ -42,7 +39,7 @@ void acceptor::newcon(ev::io &w,int revents){
                 exit(1);
 
  
-
+		//push work to thread ( simplest round robin ever)
  		workers[athread++]->add_session(client_fd);
         if(athread >= nthread) athread = 0;
 
@@ -78,7 +75,7 @@ loop.loop();
 
 
 
-acceptor::acceptor(const char *pp,int p,int t,processor &h):m_processor(h) {
+acceptor::acceptor(const char *pp,int p,int t,processor &processor_) {
 		ip = pp;
         iow.set(loop);
         iow.set<acceptor,&acceptor::newcon>(this);
@@ -89,7 +86,7 @@ acceptor::acceptor(const char *pp,int p,int t,processor &h):m_processor(h) {
         
         
         for (int i = 0; i < nthread; ++i){
-                worker *w = new worker(m_processor);
+                worker *w = new worker(processor_);
                 workers.push_back(w);
                 thr = new thread<worker>(w);
         		threads.push_back(thr);
