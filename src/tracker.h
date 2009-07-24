@@ -11,6 +11,7 @@ using namespace std;
 
 using namespace v8;
 
+//hash compare functor for peer_id and infohash
 struct hashCmp {
       bool operator()( const char *s1, const char *s2 ) const {
         return memcmp( s1, s2,20 ) < 0;
@@ -46,7 +47,7 @@ public:
 
 class tracker{
 public:
-	tracker();
+	tracker(const char *);
 	int processRequest(request &,char *,size_t);
 	int scrape(request &,char *,size_t);
 	int dumperr(const char *,char *,size_t);
@@ -55,11 +56,12 @@ public:
 	void info(ostream &,char *);
 
 protected:
+	
 	Handle<ObjectTemplate> makeFuncs();
 	pthread_mutex_t io_mutex ;
 
 	//v8 specific
-	Persistent<Context> context;
+	Handle<Context> context;
 	Persistent<ObjectTemplate> global;
 	
 	Persistent<Function> newRequest;
@@ -68,6 +70,7 @@ protected:
 	
 	//tracker
 		void removePeer(torrent *,peer *);
+		void removeTorrent(torrent *);
 	map<const char *,torrent *, hashCmp > torrents;
 	int peerList(request &,torrent *,char *,size_t);
 	

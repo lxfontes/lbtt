@@ -19,12 +19,14 @@ peer properties = peerid,ip,port,left,downloaded,uploaded,corrupt,passkey,lastse
 */
 function newRequest(request){
 teste++;
-print("ip "+request.ip+" event "+request.event)
+mysqlQuery("SELECT NOW() as t1,NOW() as t2")
+print(teste + " ip "+request.ip+" event "+request.event)
 if(request.newPeer == false){
 	print("peer ip "+request.peer.ip)
 }
 if(request.newTorrent == false){
-	print("hosts in this torrent " + (request.torrent.complete + request.torrent.incomplete))
+	print("hosts in this torrent "+ request.torrent.infohash +" " + (request.torrent.complete + request.torrent.incomplete))
+	mysqlQuery("INSERT INTO torrent(infohash) VALUES('"+mysqlEscape(request.torrent.infohash)+"')")
 }
 return undefined;
 }
@@ -35,8 +37,9 @@ function expirePeer(torrent,peer){
 }
 
 function expireTorrent(torrent){
-	
+	print("torrent is DEAD !!!!!")
 }
 
 //this will run @ the start
 print("javascript interface initiated");
+print("MYSQL Connect? " + mysqlConnect("localhost","tb","tr4ck3r","bittorrent"));

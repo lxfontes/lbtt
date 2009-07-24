@@ -7,12 +7,19 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <sstream>
-
+#include <iomanip>
 
 using namespace std;
 using namespace v8;
 
 MYSQL mysql;
+
+//max timeout before expiring a peer/torrent 
+#define TRK_TIMEOUT 600000
+//announce interval
+#define TRK_INTERVAL 300
+//housekeeping
+#define TRK_CLEANUP_INTERVAL 60
 
 Handle<Object> wrapRequest(request &req){
 	Handle<Object> retf = Object::New();
@@ -75,6 +82,10 @@ void tracker::removePeer(torrent *tor,peer *pee){
 		delete pee;
 
 }
+void tracker::removeTorrent(torrent *tor){
+	torrents.erase(tor->id);
+	delete tor;
+}
 int tracker::peerList(request &req,torrent *tor,char *outb,size_t outs){
 	//ok........
 		int tt;
@@ -89,7 +100,7 @@ int tracker::peerList(request &req,torrent *tor,char *outb,size_t outs){
 				
 		
 tt = snprintf(outb,outs,"d8:completei%lde10:incompletei%lde8:intervali%de12:min intervali%de5:peers",
-			tor->seeders,tor->hosts - tor->seeders, 300 , 120);
+			tor->seeders,tor->hosts - tor->seeders, TRK_INTERVAL , TRK_INTERVAL / 2);
 		
 		if(req.compact){
 			string walker;
@@ -105,7 +116,7 @@ tt = snprintf(outb,outs,"d8:completei%lde10:incompletei%lde8:intervali%de12:min 
 			}
 		char *p = outb + tt;
 		int add;
-		add=sprintf(p,"%d:",walker.size());
+		add=sprintf(p,"%d:",(int)walker.size());
 		p+=add;
 		tt +=add;
 		memcpy(p,walker.c_str(),walker.size());
@@ -155,23 +166,31 @@ void tracker::run(){
 			for(;iterTor != torrents.end();iterTor++){
 				torrent *tor = iterTor->second;
 				map<const char *,peer *>::iterator iterPeers = tor->peers.begin();
+				//check expired peers
 				for(;iterPeers != tor->peers.end();iterPeers++){
 					peer *pee = iterPeers->second;
-					if((pee->lastseen + 600000) < now){
+					if((pee->lastseen + TRK_TIMEOUT) < now){
 						Handle<Object> jspee = wrapPeer(pee);
 						Handle<Object> jstor = wrapTorrent(tor);
 						const int argc = 2;
   						Handle<Value> argv[argc] = { jstor,jspee };	
-						//run newRequest
 						Handle<Value> result = expirePeer->Call(context->Global(), argc, argv);
 						removePeer(tor,pee);
 					} 
 				}
+				//check if torrent is expired
+					if((tor->lastseen + TRK_TIMEOUT) < now && tor->peers.size() == 0 ){
+						Handle<Object> jstor = wrapTorrent(tor);
+						const int argc = 1;
+  						Handle<Value> argv[argc] = { jstor };	
+						Handle<Value> result = expireTorrent->Call(context->Global(), argc, argv);
+						removeTorrent(tor);
+					}
 				
 			}
 			
 		}
-		sleep(60);
+		sleep(TRK_CLEANUP_INTERVAL);
 	}
 	
 }
@@ -325,6 +344,7 @@ Handle<String> ReadFile(const string& name) {
 }
 
 
+
 //this is intended to return a single tuple like
 // result.id = 123
 // result.name = lucas
@@ -345,9 +365,15 @@ Handle<Value> mysqlQuery(const v8::Arguments& args){
 	v8::String::Utf8Value str(args[0]);
     const char* cstr = ToCString(str);
 	
- 	mysql_query(&mysql,cstr);	
+ 	if(mysql_real_query(&mysql,cstr,str.length())){
+ 		return v8::Boolean::New(false);
+ 	}
 
 	res = mysql_use_result(&mysql);
+	if(res == NULL){
+		return v8::Undefined();
+	}
+	
     nfields = mysql_num_fields(res);
     fields = mysql_fetch_fields(res);
 
@@ -366,19 +392,56 @@ Handle<Value> mysqlQuery(const v8::Arguments& args){
 	return retb;
 }
 
+Handle<Value> mysqlEscape(const v8::Arguments& args){
+	if(args.Length() != 1){
+		return v8::Boolean::New(false);
+	}
+	
+	v8::String::Utf8Value str(args[0]);
+    char b[str.length() * 2 + 1];
+    unsigned long ret = 0;
+	ret = mysql_real_escape_string(&mysql,b,*str,str.length());
+	return v8::String::New(b,ret);
+}
+
+
+Handle<Value> mysqlConnect(const v8::Arguments& args){
+	if(args.Length() != 4){
+		return v8::Boolean::New(false);
+	}
+	
+	v8::String::Utf8Value host(args[0]);
+    v8::String::Utf8Value user(args[1]);
+	v8::String::Utf8Value pw(args[2]);
+	v8::String::Utf8Value db(args[3]);
+    //initiate mysql
+  	mysql_init(&mysql);
+  	if(mysql_real_connect(&mysql, *host,*user,*pw,*db, MYSQL_PORT, NULL, 0) == NULL){
+  		cout << "mysqlConnect failed: " << mysql_error(&mysql) << endl;
+  		return v8::Boolean::New(false);
+  	}
+	char a0 = true;
+    mysql_options(&mysql, MYSQL_OPT_RECONNECT, &a0);
+
+  	 return v8::Boolean::New(true);
+}
+
+
+
 Handle<ObjectTemplate> tracker::makeFuncs() {
   HandleScope handle_scope;
 
   Handle<ObjectTemplate> result = ObjectTemplate::New();
   result->Set(String::New("print"), FunctionTemplate::New(Print));
   result->Set(String::New("mysqlQuery"), FunctionTemplate::New(mysqlQuery));
- 
+  result->Set(String::New("mysqlConnect"), FunctionTemplate::New(mysqlConnect));
+  result->Set(String::New("mysqlEscape"), FunctionTemplate::New(mysqlEscape));
   // Again, return the result through the current handle scope.
   return handle_scope.Close(result);
 }
 
 
-tracker::tracker(){
+tracker::tracker(const char *scriptFile){
 	HandleScope handle_scope;
 	pthread_mutex_init(&io_mutex,NULL);
 
@@ -393,7 +456,7 @@ tracker::tracker(){
 	Context::Scope context_scope(context);
 	
     
- 	Handle<String> source = ReadFile("lbtt.js");
+ 	Handle<String> source = ReadFile(scriptFile);
  	Handle<Script> script = Script::Compile(source);
  	Handle<Value> result = script->Run();
  	
@@ -421,12 +484,7 @@ tracker::tracker(){
   	}
   	
   	
-  	//initiate mysql
-  	mysql_init(&mysql);
-  	mysql_real_connect(&mysql, "localhost","tb", "tr4ck3r", "bittorrent", MYSQL_PORT, NULL, 0);
-	char a0 = true;
-    mysql_options(&mysql, MYSQL_OPT_RECONNECT, &a0);
-    
+  	
     seeders = hosts = download = 0;
     //housekeeping thread
     thread<tracker> thr(this);
@@ -456,6 +514,6 @@ void tracker::info(ostream &fo,char *toc){
 
 
 int tracker::dumperr(const char *msg,char *outb,size_t outs){
-	snprintf(outb,outs,"d14:failure reason%d:%se",strlen(msg),msg);
+	snprintf(outb,outs,"d14:failure reason%d:%se",(int)strlen(msg),(char *)msg);
 	return strlen(outb) ;
 }

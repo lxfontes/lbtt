@@ -8,9 +8,9 @@
 class sfcgi
 {
 public:
-        sfcgi (tracker &t,int port){ tracker_ = &t; std::stringstream p; p << ":"; p << port;
+        sfcgi (tracker &t, const char *port){ tracker_ = &t;
         FCGX_Init();
-        usock = FCGX_OpenSocket(p.str().c_str(),10); 
+        usock = FCGX_OpenSocket(port,10); 
         thread<sfcgi> thr(this);
     }
     	static int decode_q(const char *uri,char *ret){

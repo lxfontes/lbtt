@@ -1,6 +1,9 @@
 #include <getopt.h>
 #include <ev.c>
-#include "lbtt.h"
+#include <iostream>
+#include <fcntl.h>
+#include <ev++.h>
+
 #include "acceptor.h"
 #include "processor.h"
 #include "tracker.h"
@@ -12,22 +15,25 @@ int printHelp(){
 	cout << "-t\tthreads [def. 10, max 50]" << endl;
 	cout << "-p\tport [def. 8080]" << endl;
 	cout << "-b\tip [def. 0.0.0.0]" << endl;
-	cout << "-f\tfastcgi port [def. 8082]" << endl;
+	cout << "-f\tfastcgi ip:port [def. 0.0.0.0:8082]" << endl;
+	cout << "-s\tjavascript file [def. lbtt.js]" << endl;
 		return 0;
 }
 int main(int argc,char **argv){
 	char opt;
 	const char *ip = "0.0.0.0";
 	int port=8080;
-	int fcgiport = 8082;
+	const char *fcgiport = ":8082";
 	int threads = 10;
-	 while((opt = getopt(argc, argv, "ht:p:b:f:")) != -1) {
+	const char *scriptFile = "lbtt.js";
+	
+	 while((opt = getopt(argc, argv, "ht:p:b:f:s:")) != -1) {
 		switch(opt){
 			
 			case 'h':
 				return printHelp();
 			case 'f':
-				fcgiport = atoi(optarg);
+				fcgiport = optarg;
 			case 't':
 				threads = atoi(optarg);
 				break;
@@ -36,6 +42,10 @@ int main(int argc,char **argv){
 				break;
 			case 'b':
 				ip = optarg;
+				break;
+			case 's':
+				scriptFile = optarg;
+				break;
 		}
 	}
 	if(threads > 50){
@@ -43,7 +53,7 @@ int main(int argc,char **argv){
 		threads = 50;
 	}
 	cout << "starting @ " << ip << ":" << port << " fcgi " << fcgiport << " threads " << threads << endl;
-	tracker lbtt;
+	tracker lbtt(scriptFile);
 	sfcgi cgi(lbtt,fcgiport);
 	processor http(lbtt);
 	acceptor ac(ip,port,threads,http);

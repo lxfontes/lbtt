@@ -14,7 +14,11 @@ PLATFORM := $(shell uname -m)
 ifeq ($(PLATFORM), x86_64)
 V8ARCH=x64
 else
+ifeq ($(PLATFORM), amd64)
+V8ARCH=x64
+else
 V8ARCH=ia32
+endif
 endif
 
 ifeq ($(DEBUG), 1)
