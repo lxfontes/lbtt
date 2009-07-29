@@ -29,6 +29,7 @@ public:
                         c = (char)strtol(tmp, NULL, 16);
                         i += 2;
                 }
+               
                 ret[j++] = c;
         }
         ret[j]='\0';

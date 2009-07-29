@@ -17,9 +17,24 @@ MYSQL mysql;
 //max timeout before expiring a peer/torrent 
 #define TRK_TIMEOUT 600000
 //announce interval
-#define TRK_INTERVAL 300
+#define TRK_INTERVAL 900
 //housekeeping
 #define TRK_CLEANUP_INTERVAL 60
+
+static char hexconvtab[] = "0123456789abcdef";
+
+Handle<String> _bin2hex(const char *istr){
+	int j = 0;
+	char re[41];
+	for(int i=0;i<20;i++){
+		char c = istr[i] & 0xff;
+        re[j++]=hexconvtab[ (c >> 4) & 15 ];
+        re[j++]=hexconvtab[c & 15];
+    }
+    re[j]='\0';
+    Handle<String> m = String::New(re,j);
+    return m;
+}
 
 Handle<Object> wrapRequest(request &req){
 	Handle<Object> retf = Object::New();
@@ -31,7 +46,8 @@ Handle<Object> wrapRequest(request &req){
 	retf->Set(String::New("numwant"),Number::New(req.numwant));
 	retf->Set(String::New("port"),Number::New(req.port));
 	retf->Set(String::New("passkey"),String::New(req.pass));
-	retf->Set(String::New("infohash"),String::New(req.torrent,20));
+	retf->Set(String::New("_infohash"),String::New(req.torrent,20));
+	retf->Set(String::New("hexhash"),_bin2hex(req.torrent));
 	retf->Set(String::New("peerid"),String::New(req.peerid,20));
 	retf->Set(String::New("ip"),String::New(ip));
 	if(req.event == req.UPDATE){
@@ -52,7 +68,8 @@ Handle<Object> wrapTorrent(torrent *tor){
 		rett->Set(String::New("incomplete"),Number::New(tor->hosts - tor->seeders));
 		rett->Set(String::New("download"),Number::New(tor->download));
 		rett->Set(String::New("lastseen"),Date::New(tor->lastseen));
-		rett->Set(String::New("infohash"),String::New(tor->id,20));
+		rett->Set(String::New("_infohash"),String::New(tor->id,20));
+		rett->Set(String::New("hexhash"),_bin2hex(tor->id));
 		return rett;
 }
 
@@ -65,7 +82,8 @@ Handle<Object> wrapPeer(peer *pee){
 	rett->Set(String::New("corrupt"),Number::New(pee->corrupt));
 	rett->Set(String::New("lastseen"),Date::New(pee->lastseen));
 	rett->Set(String::New("passkey"),String::New(pee->pass));
-	rett->Set(String::New("peerid"),String::New(pee->id,20));
+	rett->Set(String::New("_peerid"),String::New(pee->id,20));
+	rett->Set(String::New("hexpeerid"),_bin2hex(pee->id));
 	rett->Set(String::New("ip"),String::New(ip));
 	rett->Set(String::New("port"),Number::New(pee->port));	
 	return rett;
@@ -226,6 +244,7 @@ int tracker::processRequest(request &req,char *outb,size_t outs){
 	torrent *tor = NULL;
 	peer *pee = NULL;
 	
+	
 	if(iter != torrents.end()){
 		tor = iter->second;
 		retf->Set(String::New("newTorrent"),Boolean::New(false));
@@ -382,7 +401,7 @@ Handle<Value> mysqlQuery(const v8::Arguments& args){
                 for(int i=0;i<nfields;i++){
                         k = fields[i].name;
                         v = row[i];
-    					retf->Set(String::New(k),String::New(v));                    
+			retf->Set(String::New(k),String::New(v));                    
                 }	
 	retb = retf;
   }else{
@@ -426,8 +445,16 @@ Handle<Value> mysqlConnect(const v8::Arguments& args){
   	 return v8::Boolean::New(true);
 }
 
-
-
+Handle<Value> bin2hex(const v8::Arguments& args){
+	if(args.Length() != 1){
+		return v8::Boolean::New(false);
+	}
+	
+	v8::String::AsciiValue str(args[0]);
+	const char *istr = *str;
+	return _bin2hex(istr);	
+	
+}
 Handle<ObjectTemplate> tracker::makeFuncs() {
   HandleScope handle_scope;
 
@@ -436,6 +463,7 @@ Handle<ObjectTemplate> tracker::makeFuncs() {
   result->Set(String::New("mysqlQuery"), FunctionTemplate::New(mysqlQuery));
   result->Set(String::New("mysqlConnect"), FunctionTemplate::New(mysqlConnect));
   result->Set(String::New("mysqlEscape"), FunctionTemplate::New(mysqlEscape));
+  result->Set(String::New("bin2hex"), FunctionTemplate::New(bin2hex));
   // Again, return the result through the current handle scope.
   return handle_scope.Close(result);
 }
