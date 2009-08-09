@@ -27,7 +27,7 @@ endif
 
 
 
-OBJS=acceptor.o worker.o processor.o  tracker.o sfcgi.o lbtt.o
+OBJS=lbtt.o Worker.o Tracker.o v8funcs.o FastCgi.o Acceptor.o
 
 all: v8 tracker
 v8:

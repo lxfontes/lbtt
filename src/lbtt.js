@@ -18,6 +18,8 @@ peer properties = hexpeerid,ip,port,left,downloaded,uploaded,corrupt,passkey,las
 function newRequest(request){
 if(request.newTorrent == false){
 	print(request.hexhash +" "+request.torrent.complete+" seeders, "+request.torrent.incomplete+" leechers")
+}else{
+	print("new Torrent " + request.hexhash)
 }
 
 /*
@@ -27,11 +29,11 @@ return "failure, you're too ugly"
 }
 
 function expirePeer(torrent,peer){
-	print(torrent.hexhash + " "+torrent.complete+" seeders, "+torrent.incomplete+" leechers")
+	print("expiring peer " + torrent.hexhash + " "+torrent.complete+" seeders, "+torrent.incomplete+" leechers")
 }
 
 function expireTorrent(torrent){
-	print(torrent.hexhash + " "+torrent.complete+" seeders, "+torrent.incomplete+" leechers")
+	print("expiring torrent " + torrent.hexhash + " "+torrent.complete+" seeders, "+torrent.incomplete+" leechers")
 }
 
 //this will run @ the start
