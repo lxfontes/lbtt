@@ -243,7 +243,8 @@ void Tracker::run(){
 
 Tracker::Tracker(string &scriptFile): interval(300),seeders(0),hosts(0),download(0){
 	pthread_mutex_init(&io_mutex,NULL);
-	srand ( time(NULL) );
+	startTime = time(NULL);
+	srand ( startTime );
 	HandleScope handle_scope;
 
 	Handle<ObjectTemplate> funcs = makeFuncs();
@@ -287,8 +288,10 @@ Tracker::Tracker(string &scriptFile): interval(300),seeders(0),hosts(0),download
 
 void Tracker::status(ostream &fo){
 	scoped_lock lock( io_mutex );
-
+	time_t now = time(NULL);
+	time_t delta = now - startTime;
 	fo << "{ " ;
+	fo << "\"uptime\": " << delta << "," ;
 	fo << "\"torrents\": " << torrents.size() << "," ;
 	fo << "\"peers\": " << hosts << "," ;
 	fo << "\"seeders\": " << seeders << ",";

@@ -85,7 +85,7 @@ unsigned long seeders;
 unsigned long hosts;
 unsigned long download;
 pthread_mutex_t io_mutex ;
-
+time_t startTime;
 
         //v8 specific
         Handle<Context> context;
