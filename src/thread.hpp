@@ -12,9 +12,9 @@ struct fthread{
 template<class T>
 struct thread{
 	thread(T *x) { pthread_create(&tid,NULL,fthread<T>::run,x);}
+	~thread(){ pthread_join(tid,NULL); }
 	protected:
 	pthread_t tid;
-	fthread<T> x_;
 };
 
 #endif
