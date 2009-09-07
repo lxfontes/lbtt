@@ -96,7 +96,7 @@ ANDROID_LINKFLAGS = ['-nostdlib',
 
 LIBRARY_FLAGS = {
   'all': {
-    'CPPDEFINES':   ['ENABLE_LOGGING_AND_PROFILING'],
+    'CPPDEFINES':   [''],
     'CPPPATH': [join(root_dir, 'src')],
     'regexp:native': {
         'CPPDEFINES': ['V8_NATIVE_REGEXP']
