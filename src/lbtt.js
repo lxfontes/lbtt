@@ -1,3 +1,5 @@
+
+print("loading...");
 /*
 mysql example
 my = mysqlQuery("SELECT NOW() as t1,NOW() as t2")
@@ -17,9 +19,9 @@ peer properties = hexpeerid,ip,port,left,downloaded,uploaded,corrupt,passkey,las
 */
 function newRequest(request){
 if(request.newTorrent == false){
-	print(request.hexhash +" "+request.torrent.complete+" seeders, "+request.torrent.incomplete+" leechers")
+	print(request.info_hash +" "+request.torrent.seeders+" seeders, "+request.torrent.leechers+" leechers "+request.torrent.hosts+" hosts")
 }else{
-	print("new Torrent " + request.hexhash)
+	print("new Torrent " + request.info_hash)
 }
 
 /*
@@ -29,11 +31,11 @@ return "failure, you're too ugly"
 }
 
 function expirePeer(torrent,peer){
-	print("expiring peer " + torrent.hexhash + " "+torrent.complete+" seeders, "+torrent.incomplete+" leechers")
+	print("expire peer "+ torrent.info_hash +" "+torrent.seeders+" seeders, "+torrent.leechers+" leechers "+torrent.hosts+" hosts")
 }
 
 function expireTorrent(torrent){
-	print("expiring torrent " + torrent.hexhash + " "+torrent.complete+" seeders, "+torrent.incomplete+" leechers")
+	print("expire torrent"+ torrent.info_hash +" "+torrent.seeders+" seeders, "+torrent.leechers+" leechers "+torrent.hosts+" hosts")
 }
 
 //this will run @ the start

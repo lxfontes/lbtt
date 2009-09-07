@@ -1,18 +1,26 @@
-#ifndef __V8FUNCS__
-#define __V8FUNCS__
+/* 
+ * File:   v8funcs.h
+ * Author: lfontes
+ *
+ * Created on September 6, 2009, 5:14 PM
+ */
+
+#ifndef _V8FUNCS_H
+#define	_V8FUNCS_H
 #include <v8.h>
+
+
 #include <iostream>
-#include "Tracker.h"
+#include <string>
+
+
 using namespace v8;
 using namespace std;
 
-Handle<Object> wrapRequest(Request &);
-Handle<Object> wrapTorrent(Torrent *);
-Handle<Object> wrapPeer(Peer *);
-Handle<Value> Print(const v8::Arguments&);
 Handle<ObjectTemplate> makeFuncs();
-Handle<String> ReadFile(const string& );
+Handle<ObjectTemplate> makeRequestTemplate();
+Handle<ObjectTemplate> makePeerTemplate();
+Handle<ObjectTemplate> makeTorrentTemplate();
+Handle<String> ReadFile(const char* name);
+#endif	/* _V8FUNCS_H */
 
-
-string _bin2hex(const char *);
-#endif

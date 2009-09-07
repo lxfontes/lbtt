@@ -1,0 +1,54 @@
+8
+
+dir
+2839
+http://v8.googlecode.com/svn/trunk/src/third_party/dtoa
+http://v8.googlecode.com/svn
+
+
+
+2009-08-21T10:54:26.783851Z
+2739
+sgjesse@chromium.org
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+ce2b1a6d-e550-0410-aec6-3dcde31c8c00
+
+COPYING
+file
+
+
+
+
+2009-09-07T16:05:26.000000Z
+ce0717131ddd73fcd669208879739785
+2008-08-11T06:58:13.116843Z
+10
+mads.s.ager
+has-props
+
+dtoa.c
+file
+
+
+
+
+2009-09-07T16:05:26.000000Z
+02247965f9b7622914bc5f29eb7db4da
+2009-08-21T10:54:26.783851Z
+2739
+sgjesse@chromium.org
+has-props
+

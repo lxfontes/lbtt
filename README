@@ -1,35 +1,21 @@
 required:
 v8 javascript engine ( http://code.google.com/p/v8/ ) ** shipped
 libev IO layer ( http://software.schmorp.de/pkg/libev.html ) ** shipped
-fastcgi libraries ( http://www.fastcgi.com/ ) -> either /usr/include or /usr/local/include
 mysql libraries ( http://www.mysql.com ) -> MAKE SURE mysql_config is in your path
+scons + python ( required to compile v8 )
 
 just run:
 cd src && make
 
 
+torrent urls
+http://host:8080/announce
+http://host:8080/scrape
 
-The tracker has 2 entry points:
-** announce/scrape default: port 8080
-the tracker itself
+json urls
+http://host:8080/lbtt/status
+{"uptime": 123,"torrents": 46,"peers": 2457,"seeders": 27,"downloads": 15 }
 
-** fastcgi default: port 8082
-tracker status and torrent status using json
-considering that you mapped /lbtt as fastcgi endpoint, the status urls are:
-http://localhost/lbtt/status -> tracker info, example:
-{ "torrents": 46,"peers": 2457,"seeders": 27,"downloads": 15 }
-and can also be called with a callback ( to be included in webpages and stuff )
-
-http://localhost/lbtt/status?callback -> cb = callback, example:
-callback({ "torrents": 46,"peers": 2458,"seeders": 28,"downloads": 15 })
-
-the torrentinfo url requires a infohash parameter just like announce/scrape
-http://localhost/lbtt/info?info_hash=%e6%1bp%9bR%7b%dc%2f%a4%04%c7%8f%3cZ%d8%27%c72%7d%91
-and the output:
+http://host:8080/lbtt/info?info_hash=(20bytes infohash, like scrape)
 { "complete": 0,"downloaded": 0,"incomplete": 1 }
-
-a callback can also be passed as
-http://localhost/lbtt/info?info_hash=%e6%1bp%9bR%7b%dc%2f%a4%04%c7%8f%3cZ%d8%27%c72%7d%91&cb=callback
-callback({ "complete": 0,"downloaded": 0,"incomplete": 1 })
-
 

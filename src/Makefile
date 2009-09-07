@@ -1,14 +1,16 @@
 CC=g++
+OBJS=main.o tracker.o acceptor.o worker.o v8funcs.o
 V8=../deps/v8
+CFLAGS=-Wall -I ../deps/libev  -I$(V8)/include -DEV_STANDALONE=1 -DEV_MULTIPLICITY=1 `mysql_config --cflags`
+LDFLAGS=-lpthread  $(V8)/libv8.a `mysql_config --libs`
 
-CFLAGS=`mysql_config --cflags` -I ../deps/libev  -I$(V8)/include -Wall -DDEBUG -DEV_STANDALONE=1 -DEV_MULTIPLICITY=1
-LDFLAGS=`mysql_config --libs` -I ../deps/libev -DDEBUG -lmysqlclient -lpthread  -lfcgi -lfcgi++ $(V8)/libv8.a
 
 UNAME := $(shell uname)
 ifeq ($(UNAME), FreeBSD)
-CFLAGS+=-I/usr/local/include
-LDFLAGS+=-lexecinfo -L/usr/local/lib
+CFLAGS+= -I/usr/local/include
+LDFLAGS+= -lexecinfo -L/usr/local/lib
 endif
+
 
 PLATFORM := $(shell uname -m)
 ifeq ($(PLATFORM), x86_64)
@@ -26,19 +28,16 @@ CFLAGS += -ggdb -DDEBUG
 endif
 
 
-
-OBJS=lbtt.o Worker.o Tracker.o v8funcs.o FastCgi.o Acceptor.o
-
 all: v8 tracker
-v8:
-	cd ../deps/v8 && scons mode=release library=static snapshot=on arch=$(V8ARCH)
 
 tracker: $(OBJS)
 	$(CC) -o $@ $(OBJS) $(LDFLAGS)
-		
 
-.cc.o:
-	$(CC) $(CFLAGS) -c -O $*.cc
+v8: $(V8)/libv8.a
+	cd $(V8) && scons mode=release library=static arch=$(V8ARCH)
+
+.cpp.o:
+	$(CC) $(CFLAGS) -c -O $*.cpp
 
 clean:
 	rm -f *.o tracker
