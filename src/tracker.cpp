@@ -331,6 +331,16 @@ bool TorrentTracker::scrape(TorrentRequest& req, stringstream& output) {
 }
 
 bool TorrentTracker::info(TorrentRequest& req, stringstream& output) {
+		scoped_lock lock( io_mutex );
+        TorrentFile *tor;
+        map<const char *,TorrentFile *>::iterator iter = torrents.find(req.torrent);
+        if(iter == torrents.end()){ output << "{\"error\": \"not found\"}" ; return false; }
+        tor = iter->second;
+        output << "{ " ;
+        output << "\"complete\": " << tor->seeders << "," ;
+        output << "\"downloaded\": " << tor->downloads << "," ;
+        output << "\"incomplete\": " << (tor->hosts - tor->seeders) << " }";
+
     return true;
 }
 

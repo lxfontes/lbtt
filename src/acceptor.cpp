@@ -53,7 +53,7 @@ Acceptor::Acceptor(const char* ip, int port) {
     if (bind(fd, (struct sockaddr *) & listen_addr,
             sizeof (listen_addr)) < 0)
         exit(1);
-    if (listen(fd, 5) < 0)
+    if (listen(fd, 50) < 0)
         exit(1);
     if (setnonblock(fd) < 0)
         exit(1);

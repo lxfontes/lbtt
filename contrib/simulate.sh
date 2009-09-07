@@ -1,4 +1,5 @@
 #!/bin/sh
+SITE=$1
 tracker() {
 PEERID=$1
 PORT=$2
@@ -7,12 +8,12 @@ IP=$((PORT-900))
 if [ ! -z "$4" ]; then
 EVENT="&event=$4"
 fi
-curl -s "http://localhost:8080/announce?info_hash=%86%a4%ba%8d%2f%97%de%10%25%e8%3f%d7%99%3agl%11%22%e1%d0&peer_id=-$PEERID-z8%835%8e%92xIG%28%c2U&port=$PORT&uploaded=30&downloaded=10&left=202375168&corrupt=0&key=EB57DF4D&numwant=200&no_peer_id=1$EVENT&passkey=$PASSKEY&compact=1&ip=99.22.11.$IP" 2>&1 > /dev/null
+curl -s "$SITE/announce?info_hash=%86%a4%ba%8d%2f%97%de%10%25%e8%3f%d7%99%3agl%11%22%e1%d0&peer_id=-$PEERID-z8%835%8e%92xIG%28%c2U&port=$PORT&uploaded=30&downloaded=10&left=202375168&corrupt=0&key=EB57DF4D&numwant=200&no_peer_id=1$EVENT&passkey=$PASSKEY&compact=1&ip=99.22.11.$IP" 2>&1 > /dev/null
 echo -n "."
 }
 
 status(){
-curl -i "http://www.l3f.org:8080/lbtt/status"
+curl -i "$SITE/lbtt/status"
 echo
 }
 
