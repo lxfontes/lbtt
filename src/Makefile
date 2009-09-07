@@ -33,7 +33,7 @@ all: v8 tracker
 tracker: $(OBJS)
 	$(CC) -o $@ $(OBJS) $(LDFLAGS)
 
-v8: $(V8)/libv8.a
+v8:
 	cd $(V8) && scons mode=release library=static arch=$(V8ARCH)
 
 .cpp.o:
