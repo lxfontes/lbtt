@@ -23,7 +23,11 @@ rrdtool graph "$3" -a PNG --title "Stats" \
 "DEF:seeders=$2:seeders:AVERAGE" \
 "DEF:torrents=$2:files:AVERAGE" \
 'AREA:hosts#ff0000:Hosts' \
-'LINE1:seeders#000000:Seeders' \
-'AREA:torrents#00ff00:Torrents' 
+'GPRINT:hosts:LAST:%.0lf' \
+'LINE2:seeders#000000:Seeders' \
+'GPRINT:seeders:LAST:%.0lf' \
+'AREA:torrents#00ff00:Torrents' \
+'GPRINT:torrents:LAST:%.0lf' 
+
 ;;
 esac
