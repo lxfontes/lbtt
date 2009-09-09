@@ -41,16 +41,18 @@ struct TorrentRequest {
     bool compact;
     char peerid[20];
     char torrent[20];
-    char pass[32];
+	string query;
+    
+    string useragent;
     unsigned int port;
     in_addr_t ip;
     unsigned int numwant;
     void printMe(){
         cout << "req left " << left << " corrupt " << corrupt << " download " << download << " upload " << upload << " port "<< port <<endl;
     }
-    TorrentRequest() :
-    left(0), corrupt(0), download(0), upload(0), compact(0), port(0), ip(0), numwant(30) {
-        peerid[0] = torrent[0] = pass[0] = '\0';
+    TorrentRequest(char *q) :
+    left(0), corrupt(0), download(0), upload(0), compact(0), port(0), ip(0), numwant(30),useragent("none"),query(q) {
+        peerid[0] = torrent[0] = '\0'; 
     }
 };
 
@@ -61,7 +63,6 @@ struct TorrentPeer {
     unsigned long download;
     unsigned long upload;
     unsigned int port;
-    char *pass;
     double lastseen;
     in_addr_t ip;
 	

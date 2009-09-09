@@ -71,6 +71,30 @@ Handle<Value> req_getinfohash(Local<String> property,
     return String::New(_bin2hex(value).c_str());
 }
 
+Handle<Value> req_getagent(Local<String> property,
+        const AccessorInfo &info) {
+
+    Local<Object> self = info.Holder();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    const char *value = static_cast<TorrentRequest*> (ptr)->useragent.c_str();
+
+    return String::New(value);
+}
+
+
+
+Handle<Value> req_getquery(Local<String> property,
+        const AccessorInfo &info) {
+
+    Local<Object> self = info.Holder();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    const char *value = static_cast<TorrentRequest*> (ptr)->query.c_str();
+
+    return String::New(value);
+}
+
 Handle<Value> req_getpeerid(Local<String> property,
         const AccessorInfo &info) {
 
@@ -151,6 +175,8 @@ Handle<ObjectTemplate> makeRequestTemplate() {
     Handle<ObjectTemplate> result = ObjectTemplate::New();
     result->SetInternalFieldCount(1);
     result->SetAccessor(String::New("info_hash"), req_getinfohash);
+    result->SetAccessor(String::New("agent"), req_getagent);
+    result->SetAccessor(String::New("query"), req_getquery);
     result->SetAccessor(String::New("peer_id"), req_getpeerid);
     result->SetAccessor(String::New("left"), req_getleft);
     result->SetAccessor(String::New("download"), req_getdownload);

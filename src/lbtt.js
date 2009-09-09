@@ -19,7 +19,7 @@ peer properties = hexpeerid,ip,port,left,downloaded,uploaded,corrupt,passkey,las
 */
 function newRequest(request){
 if(request.newTorrent == false){
-	print(request.info_hash +" "+request.torrent.seeders+" seeders, "+request.torrent.leechers+" leechers "+request.torrent.hosts+" hosts")
+	print(request.agent+" "+request.info_hash +" "+request.torrent.seeders+" seeders, "+request.torrent.leechers+" leechers "+request.torrent.hosts+" hosts")
 }else{
 	print("new Torrent " + request.info_hash)
 }

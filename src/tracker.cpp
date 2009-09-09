@@ -269,7 +269,6 @@ bool TorrentTracker::announce(TorrentRequest& req, stringstream& output) {
         peer = new TorrentPeer(req.peerid);
         peer->ip = req.ip;
         peer->port = req.port;
-        peer->pass = req.pass;
         tor->peers.insert(make_pair(peer->id, peer));
         tor->peerCache.push_back(peer);
         tor->hosts++;

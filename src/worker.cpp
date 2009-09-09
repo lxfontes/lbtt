@@ -69,8 +69,6 @@ bool Worker::prepare(TorrentRequest& req, char* path, bool validate) {
         } else if (strcmp("left", key) == 0) {
             req.left = atol(value);
             hits++;
-        } else if (strcmp("passkey", key) == 0) {
-            strncpy(req.pass, value, 20); //don't use hex encoded in passkeys !
         } else if (strcmp("corrupt", key) == 0) {
             req.corrupt = atol(value);
             hits++;
@@ -131,7 +129,7 @@ void Worker::process(int fd) {
         return;
     }
     *p = '\0';
-
+    p++;
 
 
     output << "HTTP/1.0 200 HTTP OK\r\nContent-Type: text/html\r\n\r\n";
@@ -143,25 +141,48 @@ void Worker::process(int fd) {
         return;
     }
 
-    TorrentRequest req;
+    TorrentRequest req(path);
+
+
+    //look for User-Agent
+    char *ua = NULL;
+    ua = strstr(p,"\r\nUser-Agent: ");
+    if(ua != NULL){
+      ua += 14; // jump User-Agent: 
+      char *uaend = strchr(ua,'\r');
+      if(uaend != NULL){
+	*uaend = '\0';
+        req.useragent = ua;
+     }
+
+   }
+
+
+
+
     struct sockaddr_in mysock;
     socklen_t namelen;
     namelen = sizeof (struct sockaddr_in);
     getpeername(fd, (struct sockaddr *) & mysock, &namelen);
     req.ip = mysock.sin_addr.s_addr;
 
+    
+   
     //requires infohash
     // announce , scrape , torrentinfo
+
+    
     
     if ((strncmp("/announce?", path, 8) == 0) && (prepare(req, path, false) == true)) {
         tracker.announce(req, output);
     } else if ((strncmp("/scrape?", path, 8) == 0) && (prepare(req, path, false) == true)) {
         tracker.scrape(req, output);
-    } else if ((strncmp("/lbtt/info?", path, 8) == 0) && (prepare(req, path, false) == true)) {
-        tracker.info(req, output);
+    }else if ((strncmp("/lbtt/info?", path, 8) == 0) && (prepare(req, path, false) == true)) {
+        tracker.info(req, output);    
     } else {
         output << "how did you get here?" << endl;
     }
+    
     sendit(fd);
 }
 
