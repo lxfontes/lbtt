@@ -174,10 +174,10 @@ Handle<ObjectTemplate> makeRequestTemplate() {
     HandleScope handle_scope;
     Handle<ObjectTemplate> result = ObjectTemplate::New();
     result->SetInternalFieldCount(1);
-    result->SetAccessor(String::New("info_hash"), req_getinfohash);
+    result->SetAccessor(String::New("infohash"), req_getinfohash);
     result->SetAccessor(String::New("agent"), req_getagent);
     result->SetAccessor(String::New("query"), req_getquery);
-    result->SetAccessor(String::New("peer_id"), req_getpeerid);
+    result->SetAccessor(String::New("peerid"), req_getpeerid);
     result->SetAccessor(String::New("left"), req_getleft);
     result->SetAccessor(String::New("download"), req_getdownload);
     result->SetAccessor(String::New("upload"), req_getupload);
@@ -289,7 +289,7 @@ Handle<ObjectTemplate> makePeerTemplate() {
     result->SetAccessor(String::New("corrupt"), peer_getcorrupt);
     result->SetAccessor(String::New("port"), peer_getport);
     result->SetAccessor(String::New("ip"), peer_getip);
-    result->SetAccessor(String::New("peer_id"), peer_getpeerid);
+    result->SetAccessor(String::New("peerid"), peer_getpeerid);
 	result->SetAccessor(String::New("state"), peer_getstate);
     result->SetAccessor(String::New("lastseen"), peer_getlastseen);
 
@@ -360,7 +360,7 @@ Handle<ObjectTemplate> makeTorrentTemplate() {
     HandleScope handle_scope;
     Handle<ObjectTemplate> result = ObjectTemplate::New();
     result->SetInternalFieldCount(1);
-    result->SetAccessor(String::New("info_hash"), tor_getinfohash);
+    result->SetAccessor(String::New("infohash"), tor_getinfohash);
     result->SetAccessor(String::New("hosts"), tor_gethosts);
     result->SetAccessor(String::New("seeders"), tor_getseeders);
     result->SetAccessor(String::New("leechers"), tor_getleechers);

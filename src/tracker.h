@@ -24,6 +24,7 @@ public:
     bool announce(TorrentRequest &req, stringstream &output);
     void status(stringstream &output);
     bool info(TorrentRequest &req, stringstream &output);
+	bool dynamic(TorrentRequest &req, stringstream &output);
     bool cleanup();
     int interval;
     int expireTimeout;
@@ -31,7 +32,7 @@ private:
     void removePeer(TorrentFile *, TorrentPeer *);
     void removeTorrent(TorrentFile *);
 
-    void peerList(TorrentRequest &req, TorrentFile *torrent, stringstream &output);
+    void peerList(TorrentRequest &req, TorrentFile *torrent, stringstream &output,bool stop);
     void setError(stringstream &output, const char *msg);
 protected:
     map<const char *, TorrentFile *, hashCmp> torrents;
@@ -46,6 +47,7 @@ protected:
     Persistent<ObjectTemplate> global;
 
     Persistent<Function> newRequest;
+	Persistent<Function> dynamicRequest;
     Persistent<Function> expirePeer;
     Persistent<Function> expireTorrent;
 

@@ -122,7 +122,16 @@ hosts(0), downloads(0), seeders(0), interval(1800), expireTimeout(2000) {
         Handle<Function> hfun = Handle<Function>::Cast(process_val);
         expireTorrent = Persistent<Function>::New(hfun);
     }
+	
 
+	process_name = String::New("httpRequest");
+    process_val = context->Global()->Get(process_name);
+
+    if (process_val->IsFunction()) {
+        Handle<Function> hfun = Handle<Function>::Cast(process_val);
+        dynamicRequest = Persistent<Function>::New(hfun);
+    }
+	
 }
 
 void TorrentTracker::removeTorrent(TorrentFile *tor) {
@@ -155,7 +164,16 @@ void TorrentTracker::setError(stringstream &output, const char *x) {
     output << "d14:failure reason" << static_cast<int> (strlen(x)) << ":" << x << "e";
 }
 
-void TorrentTracker::peerList(TorrentRequest &req, TorrentFile *tor, stringstream &output) {
+void TorrentTracker::peerList(TorrentRequest &req, TorrentFile *tor, stringstream &output,bool stop) {
+
+   output << "d8:completei" << tor->seeders << "e10:incompletei" << (tor->hosts - tor->seeders) <<
+            "e8:intervali" << interval << "e12:min intervali" << (interval / 2) << "e5:peers";
+
+   if(stop){
+	output << "0:e";
+	return;
+   }
+
 
     vector<TorrentPeer *>::iterator pees;
     if (req.numwant > tor->peerCache.size()) {
@@ -167,8 +185,7 @@ void TorrentTracker::peerList(TorrentRequest &req, TorrentFile *tor, stringstrea
         pees += rstart;
     }
 
-    output << "d8:completei" << tor->seeders << "e10:incompletei" << (tor->hosts - tor->seeders) <<
-            "e8:intervali" << interval << "e12:min intervali" << (interval / 2) << "e5:peers";
+ 
 
     if (req.compact) {
         string walker;
@@ -298,13 +315,15 @@ bool TorrentTracker::announce(TorrentRequest& req, stringstream& output) {
             tor->downloads++;
             downloads++;
         }
+    peerList(req, tor, output,true);
     } else if (req.event == req.STOP) {
         removePeer(tor, peer);
+    peerList(req, tor, output,true);
     }else{
+    peerList(req, tor, output,false);
 	
 	}
 
-    peerList(req, tor, output);
 
     return true;
 }
@@ -355,3 +374,27 @@ void TorrentTracker::status(stringstream& output) {
     output << "\"downloads\": " << downloads << " }";
 }
 
+
+
+bool TorrentTracker::dynamic(TorrentRequest& req, stringstream& output) {
+		scoped_lock lock( io_mutex );
+        HandleScope handle_scope;
+		Context::Scope context_scope(context);
+    // run function
+    {
+		Local<String> reqObj = String::New(req.query.c_str(),req.query.size());
+        const int argc = 1;
+        Handle<Value> argv[argc] = {reqObj};
+        //run newRequest
+        Handle<Value> result = dynamicRequest->Call(context->Global(), argc, argv);
+        if (!result->IsUndefined()) {
+            v8::String::AsciiValue str(result);
+            output << *str;
+            return true;
+        }
+
+    }
+
+	output << "The main reason Santa is so jolly is because he knows where all the bad girls live";
+    return false;
+}

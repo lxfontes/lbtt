@@ -142,6 +142,11 @@ void Worker::process(int fd) {
     }
 
     TorrentRequest req(path);
+	if(strncmp("/lbtt/dynamic",path,13) == 0){
+		tracker.dynamic(req,output);
+		sendit(fd);
+		return;
+	}
 
 
     //look for User-Agent
@@ -156,8 +161,6 @@ void Worker::process(int fd) {
      }
 
    }
-
-
 
 
     struct sockaddr_in mysock;
