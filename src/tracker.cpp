@@ -263,15 +263,24 @@ bool TorrentTracker::announce(TorrentRequest& req, stringstream& output) {
 
     // run function
     {
+  TryCatch trycatch;
         const int argc = 1;
         Handle<Value> argv[argc] = {reqObj};
         //run newRequest
         Handle<Value> result = newRequest->Call(context->Global(), argc, argv);
+	if(result.IsEmpty()){
+		Handle<Value> exception = trycatch.Exception();
+		String::AsciiValue exception_str(exception);
+		printf("Exception: %s\n", *exception_str);
+		setError(output,"exception");
+		return false;
+	}else{
         if (!result->IsUndefined()) {
             v8::String::AsciiValue str(result);
             setError(output, *str);
             return false;
         }
+	}
 
     }
 
@@ -385,7 +394,6 @@ bool TorrentTracker::dynamic(TorrentRequest& req, stringstream& output) {
 		Local<String> reqObj = String::New(req.query.c_str(),req.query.size());
         const int argc = 1;
         Handle<Value> argv[argc] = {reqObj};
-        //run newRequest
         Handle<Value> result = dynamicRequest->Call(context->Global(), argc, argv);
         if (!result->IsUndefined()) {
             v8::String::AsciiValue str(result);
