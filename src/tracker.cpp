@@ -271,7 +271,7 @@ bool TorrentTracker::announce(TorrentRequest& req, stringstream& output) {
 	if(result.IsEmpty()){
 		Handle<Value> exception = trycatch.Exception();
 		String::AsciiValue exception_str(exception);
-		printf("Exception: %s\n", *exception_str);
+		cout << "Exception:" << *exception_str << endl;
 		setError(output,"exception");
 		return false;
 	}else{
